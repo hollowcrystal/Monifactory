@@ -225,28 +225,25 @@ ServerEvents.recipes(event => {
     event.remove({ id: /gtceu:shaped\/solar_panel_/ })
 
     // Basic conversion & reversion
-    event.shapeless('2x gtceu:solar_panel', 'solarflux:sp_3').id('gtceu:solar_panel_basic_conversion')
-    event.shapeless('solarflux:sp_3', '2x gtceu:solar_panel').id('gtceu:solar_panel_basic_reversion')
+    event.shapeless('2x gtceu:solar_panel', 'solarflux:sp_2').id('gtceu:solar_panel_basic_conversion')
+    event.shapeless('solarflux:sp_2', '2x gtceu:solar_panel').id('gtceu:solar_panel_basic_reversion')
 
     // Generic conversion & reversion (Note the switch for Sculk solars)
     for (let index = 0; index <= 8; index++) {
         let tiername = TIER_ID_MAPPING[index].toLowerCase();
         let solarFluxPanel;
-        if(index <= 4) {
-            solarFluxPanel = `solarflux:sp_${index+4}`;
+        if(index <= 5) {
+            solarFluxPanel = `solarflux:sp_${index+3}`;
         } else {
             switch (index) {
-                case 5:
+                case 6:
                     solarFluxPanel = 'solarflux:sp_custom_bathyal'
                     break;
-                case 6:
+                case 7:
                     solarFluxPanel = 'solarflux:sp_custom_abyssal'
                     break;
-                case 7:
-                    solarFluxPanel = 'solarflux:sp_custom_hadal'
-                    break;
                 case 8:
-                    solarFluxPanel = 'solarflux:sp_custom_neutronium'
+                    solarFluxPanel = 'solarflux:sp_custom_hadal'
                     break;
                 default:
                     break;
