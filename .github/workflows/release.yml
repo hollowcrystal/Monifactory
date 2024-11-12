@@ -10,17 +10,8 @@ on:
         options:
           - "Stable"
           - "Pre-release"
-      cf_type:
-        description: "CF Release Type"
-        required: true
-        type: choice
-        options:
-          - "Release"
-          - "Beta"
-          - "Alpha"
-        default: "Beta"
       draft:
-        description: "Draft GitHub release (CF release will always be normal)"
+        description: "Draft GitHub release"
         type: boolean
         default: true
       generate_release_notes:
@@ -38,11 +29,6 @@ on:
         required: false
       skip_github_release:
         description: "Skip GitHub release"
-        type: boolean
-        default: false
-        required: false
-      skip_cf_release:
-        description: "Skip CurseForge release"
         type: boolean
         default: false
         required: false
@@ -103,37 +89,6 @@ jobs:
           fi
           echo "Release name will be $name"
           echo "name=$name" >> "$GITHUB_OUTPUT"
-        shell: bash
-
-      - name: Download artifacts - Current Flow
-        if: ${{ inputs.skip_build == false }}
-        uses: actions/download-artifact@v4.1.8
-        with:
-          path: artifacts
-
-      - name: Download artifacts - Previous Flow
-        if: ${{ inputs.skip_build == true}}
-        uses: actions/download-artifact@v4.1.8
-        with:
-          path: artifacts
-          run-id: ${{ github.event.inputs.run_id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Rename artifacts
-        id: artifacts
-        run: |
-          cd artifacts/build-zipzip
-          for file in ./*; do
-            if [[ $file == *.zip ]]; then
-              base=$(basename $file)
-              versioned_file="Monifactory-${{steps.name.outputs.name}}-$base"
-              mv "$file" "$versioned_file"
-            fi
-          done
-          wait
-          echo "Cleaning up - Removing non-zip files"
-          shopt -s extglob
-          rm -rf !(*.zip)
         shell: bash
 
       - name: Create body
