@@ -125,8 +125,6 @@ jobs:
       - name: Get server and client file paths
         id: filepaths
         run: |
-          server_file=$(ls artifacts/build-zipzip/*server*.zip)
-          client_file=$(ls artifacts/build-zipzip/*client*.zip)
           echo "server_file=$server_file" >> "$GITHUB_OUTPUT"
           echo "client_file=$client_file" >> "$GITHUB_OUTPUT"
         shell: bash
