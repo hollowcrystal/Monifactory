@@ -10,8 +10,17 @@ on:
         options:
           - "Stable"
           - "Pre-release"
+      cf_type:
+        description: "CF Release Type"
+        required: true
+        type: choice
+        options:
+          - "Release"
+          - "Beta"
+          - "Alpha"
+        default: "Beta"
       draft:
-        description: "Draft GitHub release"
+        description: "Draft GitHub release (CF release will always be normal)"
         type: boolean
         default: true
       generate_release_notes:
@@ -29,6 +38,11 @@ on:
         required: false
       skip_github_release:
         description: "Skip GitHub release"
+        type: boolean
+        default: false
+        required: false
+      skip_cf_release:
+        description: "Skip CurseForge release"
         type: boolean
         default: false
         required: false
@@ -91,6 +105,37 @@ jobs:
           echo "name=$name" >> "$GITHUB_OUTPUT"
         shell: bash
 
+      - name: Download artifacts - Current Flow
+        if: ${{ inputs.skip_build == false }}
+        uses: actions/download-artifact@v4.1.8
+        with:
+          path: artifacts
+
+      - name: Download artifacts - Previous Flow
+        if: ${{ inputs.skip_build == true}}
+        uses: actions/download-artifact@v4.1.8
+        with:
+          path: artifacts
+          run-id: ${{ github.event.inputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Rename artifacts
+        id: artifacts
+        run: |
+          cd artifacts/build-zipzip
+          for file in ./*; do
+            if [[ $file == *.zip ]]; then
+              base=$(basename $file)
+              versioned_file="Monifactory-${{steps.name.outputs.name}}-$base"
+              mv "$file" "$versioned_file"
+            fi
+          done
+          wait
+          echo "Cleaning up - Removing non-zip files"
+          shopt -s extglob
+          rm -rf !(*.zip)
+        shell: bash
+
       - name: Create body
         id: body
         run: |
@@ -107,6 +152,7 @@ jobs:
         id: release
         if: ${{ inputs.skip_github_release == false }}
         with:
+          artifacts: artifacts/build-zipzip/*
           name: ${{ steps.name.outputs.name }}
           tag: ${{ steps.tag.outputs.tag }}
           generateReleaseNotes: ${{ inputs.generate_release_notes }}
@@ -115,6 +161,7 @@ jobs:
           body: ${{ steps.body.outputs.body }}
           allowUpdates: true
           updateOnlyUnreleased: true
+          removeArtifacts: true
           commit: ${{  needs.pre-build.outputs.current_commit }}
 
       - name: Echo Release URL
@@ -125,6 +172,22 @@ jobs:
       - name: Get server and client file paths
         id: filepaths
         run: |
+          server_file=$(ls artifacts/build-zipzip/*server*.zip)
+          client_file=$(ls artifacts/build-zipzip/*client*.zip)
           echo "server_file=$server_file" >> "$GITHUB_OUTPUT"
           echo "client_file=$client_file" >> "$GITHUB_OUTPUT"
         shell: bash
+
+      - uses: henkelmax/upload-curseforge-modpack-action@v1.0.0
+        if: ${{ inputs.skip_cf_release == false }}
+        with:
+          api-token: ${{ secrets.RELEASE_TOKEN  }}
+          project-id: ${{vars.CF_PROJECT_ID}}
+          modpack-path: "${{steps.filepaths.outputs.client_file}}"
+          modpack-server-path: "${{steps.filepaths.outputs.server_file}}"
+          changelog: "For a detailed changelog, see the GitHub release: ${{ steps.release.outputs.html_url }}"
+          changelog-format: "text"
+          game-version: "1.20.1"
+          display-name: "Monifactory-${{steps.name.outputs.name}}"
+          server-display-name: "Monifactory-${{steps.name.outputs.name}} Server"
+          release-type: ${{ github.event.inputs.cf_type }}
