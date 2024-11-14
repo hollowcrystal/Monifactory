@@ -54,9 +54,6 @@ jobs:
           path: dist/modlist.html
           key: ${{ runner.os }}-modlist-${{ hashFiles('manifest.json') }}
           restore-keys: |
-<<<<<<< HEAD
-            ${{ runner.os }}-modlist-
-=======
             ${{ runner.os }}-modlist-
       - name: Pack Modpack
         env:
@@ -70,4 +67,3 @@ jobs:
           if-no-files-found: error
           overwrite: true
           compression-level: 0
->>>>>>> parent of 62cc6db (Update build_pr.yml)
