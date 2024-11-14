@@ -41,11 +41,6 @@ on:
         type: boolean
         default: false
         required: false
-      skip_cf_release:
-        description: "Skip CurseForge release"
-        type: boolean
-        default: false
-        required: false
 
 permissions: {}
 
@@ -177,17 +172,3 @@ jobs:
           echo "server_file=$server_file" >> "$GITHUB_OUTPUT"
           echo "client_file=$client_file" >> "$GITHUB_OUTPUT"
         shell: bash
-
-      - uses: henkelmax/upload-curseforge-modpack-action@v1.0.0
-        if: ${{ inputs.skip_cf_release == false }}
-        with:
-          api-token: ${{ secrets.RELEASE_TOKEN  }}
-          project-id: ${{vars.CF_PROJECT_ID}}
-          modpack-path: "${{steps.filepaths.outputs.client_file}}"
-          modpack-server-path: "${{steps.filepaths.outputs.server_file}}"
-          changelog: "For a detailed changelog, see the GitHub release: ${{ steps.release.outputs.html_url }}"
-          changelog-format: "text"
-          game-version: "1.20.1"
-          display-name: "Monifactory-${{steps.name.outputs.name}}"
-          server-display-name: "Monifactory-${{steps.name.outputs.name}} Server"
-          release-type: ${{ github.event.inputs.cf_type }}
