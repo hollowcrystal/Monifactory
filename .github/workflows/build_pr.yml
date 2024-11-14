@@ -17,6 +17,9 @@ on:
         required: true
         default: "build-all"
         type: string
+    secrets:
+      API_TOKEN:
+        required: true
 
 jobs:
   pack_pr:
@@ -51,4 +54,20 @@ jobs:
           path: dist/modlist.html
           key: ${{ runner.os }}-modlist-${{ hashFiles('manifest.json') }}
           restore-keys: |
+<<<<<<< HEAD
             ${{ runner.os }}-modlist-
+=======
+            ${{ runner.os }}-modlist-
+      - name: Pack Modpack
+        env:
+          CFCORE_API_TOKEN: ${{ secrets.API_TOKEN }}
+        run: bash tools/build/build -c ${{ inputs.target }}
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-zipzip
+          path: dist/*.zip
+          if-no-files-found: error
+          overwrite: true
+          compression-level: 0
+>>>>>>> parent of 62cc6db (Update build_pr.yml)
